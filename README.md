@@ -66,35 +66,3 @@ Any modification you do to the F# code will be reflected in the web page after s
 ### F# source files
 
 The template only contains two F# source files: the project (.fsproj) and a source file (.fs) in `src` folder.
-
-# Giraffe Server
-
-A [Giraffe](https://github.com/giraffe-fsharp/Giraffe) web application, which has been created via the `dotnet new giraffe` command.
-
-## Build and test the application
-
-### Windows
-
-Run the `buildServer.bat` script in order to restore, build and test (if you've selected to include tests) the application:
-
-```
-> ./build.bat
-```
-
-### Linux/macOS
-
-Run the `buildServer.sh` script in order to restore, build and test (if you've selected to include tests) the application:
-
-```
-$ ./build.sh
-```
-
-## Run the application
-
-After a successful build you can start the web application by executing the following command in your terminal:
-
-```
-dotnet run --project src/Server
-```
-
-After the application has started visit [http://localhost:5000](http://localhost:5000) in your preferred browser.
