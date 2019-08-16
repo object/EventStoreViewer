@@ -200,3 +200,6 @@ bin
 out
 .fable
 appSettings.json
+
+# Ionide
+.ionide/
