@@ -1,4 +1,4 @@
-module EventStoreViewer.Types
+module EventStoreViewer.Model
 
 open System
 
@@ -11,21 +11,21 @@ type EventSource =
 
 type EventCollection = {
     EventSource : EventSource
-    HasProgramId : bool
+    HasCommonId : bool
 }
 
 module Collections =
     let all = [
-        { EventSource = Omnibus; HasProgramId = true }
-        { EventSource = Radioarkiv; HasProgramId = true }
-        { EventSource = Subtitles; HasProgramId = true }
-        { EventSource = Potion; HasProgramId = false }
-        { EventSource = FailedMessages; HasProgramId = false }
+        { EventSource = Omnibus; HasCommonId = true }
+        { EventSource = Radioarkiv; HasCommonId = true }
+        { EventSource = Subtitles; HasCommonId = true }
+        { EventSource = Potion; HasCommonId = false }
+        { EventSource = FailedMessages; HasCommonId = false }
     ]
 
 type SearchMode =
     | ByInterval
-    | ByIdOrProgram
+    | ById
 
 type SearchInterval =
     | OneHour
@@ -77,7 +77,7 @@ type Model = {
     AppSettings : AppSettings
     SearchMode : SearchMode
     SearchInterval : SearchInterval
-    IdOrProgram : string
+    Id : string
     FromTime : string
     ToTime : string
     TimeZone : TimeZone
@@ -95,8 +95,8 @@ module Model =
             let result, _ = DateTime.TryParse s
             result
 
-    let hasValidIdOrProgram (model : Model) =
-        not (String.IsNullOrWhiteSpace model.IdOrProgram)
+    let hasValidId (model : Model) =
+        not (String.IsNullOrWhiteSpace model.Id)
 
     let hasValidFromTime (model : Model) = isValidTime model.FromTime
 
@@ -107,38 +107,5 @@ module Model =
 
     let isValid (model : Model) =
         match model.SearchMode with
-        | ByIdOrProgram -> hasValidIdOrProgram model && model.SelectedCollections.Length >= 1
+        | ById -> hasValidId model && model.SelectedCollections.Length >= 1
         | ByInterval -> hasValidInterval model && model.SelectedCollections.Length = 1
-
-type Msg =
-    | LoadAppSettings
-    | AppSettingsLoaded of Result<AppSettings,string>
-    | AppSettingsError of exn
-    | SearchModeByIdOrProgram
-    | SearchModeByInterval
-    | SearchIntervalOneHour
-    | SearchIntervalFourHours
-    | SearchIntervalOneDay
-    | SearchIntervalCustom
-    | ProgramIdChanged of string
-    | FromTimeChanged of string
-    | ToTimeChanged of string
-    | CollectionChanged of EventSource
-    | TimeZoneChanged of bool
-    | StartSearch
-    | SearchCompleted of Result<ServiceEvent array,string>
-    | SearchError of exn
-    | EventSelected of int
-    | EventUnselected
-    | LoadContent of int
-    | ContentLoaded of  Result<EventContent,string>
-    | LoadError of exn
-
-type EventRow = 
-    { 
-        CollectionName : string
-        EventId : string
-        Description : string
-        Date : string
-        Time : string
-    }

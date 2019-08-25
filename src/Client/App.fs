@@ -5,9 +5,9 @@ open Elmish.React
 open Elmish.Debug
 open Elmish.HMR
 
-open State
+open Update
 
-Program.mkProgram init update FulmaView.view
+Program.mkProgram init update HtmlView.view
 #if DEBUG
 |> Program.withDebugger
 #endif

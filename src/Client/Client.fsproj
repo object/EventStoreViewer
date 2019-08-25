@@ -3,10 +3,13 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Types.fs" />
-    <Compile Include="Logic.fs" />
-    <Compile Include="State.fs" />
+    <Compile Include="Model.fs" />
+    <Compile Include="Messages.fs" />
+    <Compile Include="UpdateUtils.fs" />
+    <Compile Include="Update.fs" />
+    <Compile Include="ViewUtils.fs" />
     <Compile Include="HtmlView.fs" />
+    <Compile Include="FulmaInitView.fs" />
     <Compile Include="FulmaView.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>

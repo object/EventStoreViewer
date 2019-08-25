@@ -4,8 +4,9 @@ open System
 open Fable.React
 open Fable.React.Props
 
-open Types
-open Logic
+open Model
+open Messages
+open ViewUtils
 
 let showButton name color disabled msg dispatch =
   button [
@@ -20,23 +21,23 @@ let showSearchModes searchMode dispatch =
   div [] [
       showButton "Interval" "" false SearchModeByInterval dispatch
       showSpace ()
-      showButton "Id/Program" "" false SearchModeByIdOrProgram dispatch ]
+      showButton "Id" "" false SearchModeById dispatch ]
 
 let showCollection collection model dispatch =
   button [
     OnClick (fun _ -> dispatch <| CollectionChanged collection)
   ] [ str <| getCollectionDisplayName collection ]
 
-let showIdOrProgramInput (model : Model) (dispatch : Msg -> unit) =
+let showIdInput (model : Model) (dispatch : Msg -> unit) =
   div [] [
     div [ClassName "control"] [input [
-      Disabled (model.SearchMode <> ByIdOrProgram)
+      Disabled (model.SearchMode <> ById)
       OnChange (fun evt -> dispatch (ProgramIdChanged evt.Value))
     ]]
   ]
 
 let showSearchIntervals (intervals : string array) modifiers (model : Model) dispatch =
-  let disabled = model.SearchMode = ByIdOrProgram
+  let disabled = model.SearchMode = ById
   div [] [
     showButton intervals.[0] "" disabled SearchIntervalOneHour dispatch
     showSpace ()
@@ -62,7 +63,7 @@ let showTimezoneMode (model : Model) dispatch =
   ]
 
 let showCustomInterval (model : Model) dispatch =
-  let disabled = model.SearchMode = ByIdOrProgram
+  let disabled = model.SearchMode = ById
   div [] [
     showButton "Custom interval" "" disabled SearchIntervalCustom dispatch
     showSpace ()
@@ -77,7 +78,7 @@ let showIntervalRange (model : Model) dispatch =
 let showSettings model dispatch =
   div [] [
     showSearchModes model.SearchMode dispatch
-    showIdOrProgramInput model dispatch
+    showIdInput model dispatch
     showSearchIntervals [|"1 hour"; "4 hours"; "24 hours"|] [] model dispatch
     showCustomInterval model dispatch
     showIntervalRange model dispatch

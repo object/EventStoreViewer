@@ -1,4 +1,4 @@
-module EventStoreViewer.Logic
+module EventStoreViewer.UpdateUtils
 
 open System
 open Elmish
@@ -6,44 +6,23 @@ open Fable.Core
 open Fetch.Types
 open Thoth.Json
 
-open Types
+open Model
 
 let [<Literal>] DateTimeFormatString = "yyyy-MM-ddTHH:mm:ss"
-let [<Literal>] DateFormatString = "yyyy-MM-dd"
-let [<Literal>] TimeFormatString = "HH:mm:ss"
-
-let rec getCommonRange xs ys result =
-    match (xs, ys) with
-    | [], _ | _, [] -> result
-    | x :: xs, y :: ys ->
-        if x = y 
-        then getCommonRange xs ys (result @ [x]) 
-        else result
-        
-let getCommonSubstring (s1 : string) (s2 : string) =
-    String.Concat(Array.ofList(getCommonRange (s1 |> Seq.toList) (s2 |> Seq.toList) []))
 
 let getRunningTime (model : Model) =
     match model.SearchStatus with
     | Running (_, startTime) -> DateTime.Now - startTime
     | _ -> TimeSpan(0L)
 
-let getCollectionTableName (col : EventSource) = 
+let private getCollectionTableName (col : EventSource) = 
     col.ToString().ToLower()
 
-let getCollectionDisplayName collection =
-    match collection with
-    | Omnibus -> "Omnibus"
-    | Radioarkiv -> "Radioarkiv"
-    | Subtitles -> "Subtitles"
-    | Potion -> "Potion"
-    | FailedMessages -> "Failed Messages"
-
 // Custom error message
-let errorString (response: Response) =
+let private errorString (response: Response) =
     string response.Status + " " + response.StatusText + " for URL " + response.Url
 
-let fetchWithDecoder<'T> url (decoder: Decoder<'T>) init =
+let private fetchWithDecoder<'T> url (decoder: Decoder<'T>) init =
     GlobalFetch.fetch(RequestInfo.Url url, Fetch.requestProps init)
     |> Promise.bind (fun response ->
         if not response.Ok then
@@ -51,12 +30,12 @@ let fetchWithDecoder<'T> url (decoder: Decoder<'T>) init =
         else
             response.text() |> Promise.map (Decode.fromString decoder))
 
-let inline fetchAs<'T> url init =
+let inline private fetchAs<'T> url init =
     let decoder = Decode.Auto.generateDecoderCached<'T>()
     fetchWithDecoder url decoder init
 
-let private getSearchByIdOrProgramUrl host collectionNames idOrProgram =
-    sprintf "%s/queryById/v1/%s/%s?noContent=true" host collectionNames idOrProgram
+let private getSearchByIdUrl host collectionNames id =
+    sprintf "%s/queryById/v1/%s/%s?noContent=true" host collectionNames id
 
 let private getSearchByIntervalUrl host collectionName fromTime toTime =
     sprintf "%s/queryByTime/v1/%s/%s/%s?noContent=true" host collectionName fromTime toTime
@@ -73,9 +52,9 @@ let getSearchUrl (model : Model) =
     let offset = if DateTime.Now.IsDaylightSavingTime() then 2 else 1
     let getLocalTime (time : DateTime) = time.AddHours(-float offset)
     match model.SearchMode with
-    | ByIdOrProgram -> 
+    | ById -> 
         let collectionNames = String.Join (",", model.SelectedCollections |> List.map getCollectionTableName)
-        getSearchByIdOrProgramUrl model.AppSettings.apiUrl collectionNames (model.IdOrProgram.Trim())
+        getSearchByIdUrl model.AppSettings.apiUrl collectionNames (model.Id.Trim())
     | ByInterval -> 
         let collectionName = model.SelectedCollections |> List.head |> getCollectionTableName
         let now = DateTime.Now
@@ -107,7 +86,7 @@ let startSearch (model : Model) fetchUrl onCompleted onError =
                                 (fetchUrl.Substring(model.AppSettings.apiUrl.Length))
     let fromTime, toTime =
         match model.SearchMode with 
-        | ByIdOrProgram -> DateTime.MinValue, DateTime.MinValue 
+        | ById -> DateTime.MinValue, DateTime.MinValue 
         | ByInterval -> DateTime.Parse model.FromTime, DateTime.Parse model.ToTime
     { model with 
         SearchStatus = SearchStatus.Running (statusMessage, DateTime.Now )
@@ -135,37 +114,3 @@ let extractContent (serviceEvent : EventContent) =
         text
     else
         JS.JSON.stringify serviceEvent.Content |> (fun x -> x.Trim('"'))
-
-let createResultRow (result : SearchResult) (event : ServiceEvent) (model : Model) =
-  let collectionName = 
-    match event.Collection with 
-    | Some name -> name 
-    | _ -> result.Collections |> List.head |> fun x -> x.ToString().ToLower()
-  let eventId = 
-    match (event.Id, event.ProgramId, event.ServiceName) with
-    | Some id, _, Some serviceName -> sprintf "%s (%s)" id serviceName
-    | None, Some programId, Some serviceName -> sprintf "%s (%s)" programId serviceName
-    | Some id, _, _ -> id
-    | None, Some programId, _ ->
-        match event.CarrierId with
-        | Some carrierId when carrierId <> programId -> 
-            let commonSubstring = getCommonSubstring programId carrierId
-            sprintf "%s (%s)" programId (carrierId.Substring(commonSubstring.Length))
-        | _ -> programId
-    | None, None, _ -> "EMPTY"
-  let description = 
-    match event.Description with 
-    | Some text -> text
-    | _ -> ""
-  let date = 
-    if result.SearchMode = ByIdOrProgram || result.FromTime.Date <> result.ToTime.Date then 
-       event.Created.ToString(DateFormatString) 
-    else 
-      ""
-  {
-    CollectionName = collectionName
-    EventId = eventId
-    Description = description
-    Date = date
-    Time = event.Created.ToString(TimeFormatString)
-  }

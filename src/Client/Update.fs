@@ -1,10 +1,11 @@
-module EventStoreViewer.State
+module EventStoreViewer.Update
 
 open System
 open Elmish
 
-open Types
-open Logic
+open Model
+open Messages
+open UpdateUtils
 
 let init _ =
     let now = DateTime.Now
@@ -12,7 +13,7 @@ let init _ =
         AppSettings = { apiUrl = ""; authorizationKey = "" }
         SearchMode = ByInterval
         SearchInterval = OneHour
-        IdOrProgram = ""
+        Id = ""
         FromTime = now.AddHours(-1.).ToString(DateTimeFormatString)
         ToTime = now.ToString(DateTimeFormatString)
         TimeZone = TimeZone.Local
@@ -27,7 +28,7 @@ let init _ =
 let update msg model =
 
     let collectionHasProgramId collection =
-        Collections.all |> List.exists (fun x -> x.EventSource = collection && x.HasProgramId)
+        Collections.all |> List.exists (fun x -> x.EventSource = collection && x.HasCommonId)
 
     let collectionsHaveProgramId collections =
         collections |> List.forall collectionHasProgramId
@@ -37,8 +38,8 @@ let update msg model =
             model.SelectedCollections |> List.filter (fun x -> x <> collection)
         else 
             match model.SearchMode with
-            | ByIdOrProgram when collectionHasProgramId collection && collectionsHaveProgramId model.SelectedCollections -> collection :: model.SelectedCollections
-            | ByIdOrProgram -> [collection]
+            | ById when collectionHasProgramId collection && collectionsHaveProgramId model.SelectedCollections -> collection :: model.SelectedCollections
+            | ById -> [collection]
             | ByInterval -> [collection]
 
     let getErrorMessage (exn : exn) =
@@ -55,9 +56,9 @@ let update msg model =
             { model with SearchStatus = Idle error }, Cmd.none
     | AppSettingsError exn -> 
         { model with SearchStatus = Idle <| getErrorMessage exn }, Cmd.none
-    | SearchModeByIdOrProgram -> 
+    | SearchModeById -> 
         { model with 
-            SearchMode = ByIdOrProgram
+            SearchMode = ById
             SelectedCollections = if model.SelectedCollections.Length = 1 then model.SelectedCollections else [] 
         }, Cmd.none
     | SearchModeByInterval -> 
@@ -65,8 +66,8 @@ let update msg model =
             SearchMode = ByInterval 
             SelectedCollections = if model.SelectedCollections.Length = 1 then model.SelectedCollections else [] 
         }, Cmd.none
-    | ProgramIdChanged idOrProgram -> 
-        { model with IdOrProgram = idOrProgram }, Cmd.none
+    | ProgramIdChanged id -> 
+        { model with Id = id }, Cmd.none
     | SearchIntervalOneHour ->
         { model with SearchInterval = OneHour }, Cmd.none
     | SearchIntervalFourHours ->
