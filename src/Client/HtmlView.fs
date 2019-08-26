@@ -8,7 +8,7 @@ open Model
 open Messages
 open ViewUtils
 
-let showButton name color disabled msg dispatch =
+let showButton name disabled msg dispatch =
   button [
     Disabled disabled
     OnClick (fun _ -> dispatch msg)
@@ -17,13 +17,13 @@ let showButton name color disabled msg dispatch =
 let showSpace () =
   div [ClassName "control"] []
 
-let showSearchModes searchMode dispatch =
+let showSearchModes dispatch =
   div [] [
-      showButton "Interval" "" false SearchModeByInterval dispatch
+      showButton "Interval" false SearchModeByInterval dispatch
       showSpace ()
-      showButton "Id" "" false SearchModeById dispatch ]
+      showButton "Id" false SearchModeById dispatch ]
 
-let showCollection collection model dispatch =
+let showCollection collection dispatch =
   button [
     OnClick (fun _ -> dispatch <| CollectionChanged collection)
   ] [ str <| getCollectionDisplayName collection ]
@@ -36,16 +36,16 @@ let showIdInput (model : Model) (dispatch : Msg -> unit) =
     ]]
   ]
 
-let showSearchIntervals (intervals : string array) modifiers (model : Model) dispatch =
+let showSearchIntervals (intervals : string array) (model : Model) dispatch =
   let disabled = model.SearchMode = ById
   div [] [
-    showButton intervals.[0] "" disabled SearchIntervalOneHour dispatch
+    showButton intervals.[0] disabled SearchIntervalOneHour dispatch
     showSpace ()
-    showButton intervals.[1] "" disabled SearchIntervalFourHours dispatch
+    showButton intervals.[1] disabled SearchIntervalFourHours dispatch
     showSpace ()
-    showButton intervals.[2] "" disabled SearchIntervalOneDay dispatch ]
+    showButton intervals.[2] disabled SearchIntervalOneDay dispatch ]
 
-let showIntervalTime text isValid changeMsg model dispatch =
+let showIntervalTime changeMsg model dispatch =
   input [
     Disabled (model.SearchMode <> ByInterval || model.SearchInterval <> Custom)
     OnChange (fun evt -> dispatch (changeMsg evt.Value))
@@ -65,21 +65,21 @@ let showTimezoneMode (model : Model) dispatch =
 let showCustomInterval (model : Model) dispatch =
   let disabled = model.SearchMode = ById
   div [] [
-    showButton "Custom interval" "" disabled SearchIntervalCustom dispatch
+    showButton "Custom interval" disabled SearchIntervalCustom dispatch
     showSpace ()
     showTimezoneMode model dispatch ]
 
 let showIntervalRange (model : Model) dispatch =
   div [] [
-      showIntervalTime model.FromTime Model.hasValidFromTime FromTimeChanged model dispatch
+      showIntervalTime FromTimeChanged model dispatch
       showSpace ()
-      showIntervalTime model.ToTime Model.hasValidToTime ToTimeChanged model dispatch ]
+      showIntervalTime ToTimeChanged model dispatch ]
 
 let showSettings model dispatch =
   div [] [
-    showSearchModes model.SearchMode dispatch
+    showSearchModes dispatch
     showIdInput model dispatch
-    showSearchIntervals [|"1 hour"; "4 hours"; "24 hours"|] [] model dispatch
+    showSearchIntervals [|"1 hour"; "4 hours"; "24 hours"|] model dispatch
     showCustomInterval model dispatch
     showIntervalRange model dispatch
   ]
@@ -95,9 +95,9 @@ let showSearchButton (model : Model) dispatch =
 let showCollections model dispatch =
   div [] 
     (Collections.all |> List.map (fun x -> 
-      div [] [showCollection x.EventSource model dispatch]))
+      div [] [showCollection x.EventSource dispatch]))
 
-let showStatus (model : Model) dispatch =
+let showStatus (model : Model) _dispatch =
   let (status, text) = 
     match model.SearchStatus with
     | Idle text -> ("Idle", text)
@@ -115,7 +115,7 @@ let showControls model dispatch =
     showStatus model dispatch
   ]
 
-let showResultRow (eventRow : EventRow) i isSmallScreen (model : Model) dispatch =
+let showResultRow (eventRow : EventRow) i (model : Model) dispatch =
   let clickHandler = 
     match model.SelectedEventIndex with 
     | Some idx when idx = i -> EventUnselected
@@ -128,21 +128,21 @@ let showResultRow (eventRow : EventRow) i isSmallScreen (model : Model) dispatch
       td [] [span [] [str <| eventRow.Time] ]]
   tr [OnClick (fun _ -> dispatch clickHandler)] columns
 
-let showResultRows isSmallScreen (model : Model) dispatch =
+let showResultRows (model : Model) dispatch =
   match model.SearchResult with
   | Some result ->
       result.Events |> List.mapi (fun i x -> 
         let eventRow = createResultRow result x model
-        showResultRow eventRow i isSmallScreen model dispatch)
+        showResultRow eventRow i model dispatch)
     | None -> []
 
 let showResults (model : Model) dispatch =
   div [] [
     table []
-      [ tbody [] (showResultRows false model dispatch) ]
+      [ tbody [] (showResultRows model dispatch) ]
   ]
 
-let showContent (model : Model) dispatch =
+let showContent (model : Model) _dispatch =
   div []
     [ p [] [ str model.Content ] 
   ]

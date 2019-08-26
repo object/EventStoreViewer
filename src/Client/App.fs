@@ -1,7 +1,6 @@
 module EventStoreViewer.App
 
 open Elmish
-open Elmish.React
 open Elmish.Debug
 open Elmish.HMR
 

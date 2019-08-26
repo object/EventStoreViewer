@@ -27,18 +27,18 @@ let init _ =
 
 let update msg model =
 
-    let collectionHasProgramId collection =
+    let collectionHasCommonId collection =
         Collections.all |> List.exists (fun x -> x.EventSource = collection && x.HasCommonId)
 
-    let collectionsHaveProgramId collections =
-        collections |> List.forall collectionHasProgramId
+    let collectionsHaveCommonId collections =
+        collections |> List.forall collectionHasCommonId
 
     let updateSelectedCollections collection =
         if model.SelectedCollections |> List.contains collection then
             model.SelectedCollections |> List.filter (fun x -> x <> collection)
         else 
             match model.SearchMode with
-            | ById when collectionHasProgramId collection && collectionsHaveProgramId model.SelectedCollections -> collection :: model.SelectedCollections
+            | ById when collectionHasCommonId collection && collectionsHaveCommonId model.SelectedCollections -> collection :: model.SelectedCollections
             | ById -> [collection]
             | ByInterval -> [collection]
 
@@ -50,9 +50,9 @@ let update msg model =
     | LoadAppSettings -> getAppSettings model AppSettingsLoaded AppSettingsError
     | AppSettingsLoaded result -> 
         match result with
-        | Result.Ok settings ->
+        | Ok settings ->
             { model with AppSettings = settings; SearchStatus = Idle "Ready to execute requests" }, Cmd.none
-        | Result.Error error ->
+        | Error error ->
             { model with SearchStatus = Idle error }, Cmd.none
     | AppSettingsError exn -> 
         { model with SearchStatus = Idle <| getErrorMessage exn }, Cmd.none
@@ -89,13 +89,13 @@ let update msg model =
         startSearch model fetchUrl SearchCompleted SearchError
     | SearchCompleted result ->
         match result with
-        | Result.Ok events ->
+        | Ok events ->
             let elapsed = getRunningTime model
             { model with 
                 SearchStatus = Idle <| sprintf "Last search: %d ms (%d results)" (int elapsed.TotalMilliseconds) events.Length
                 SearchResult = model.SearchResult |> Option.map (fun x -> { x with Events = events |> Array.toList })
              }, Cmd.none
-        | Result.Error error ->
+        | Error error ->
             { model with SearchStatus = Idle error }, Cmd.none
     | SearchError exn -> 
         { model with SearchStatus = Idle <| getErrorMessage exn }, Cmd.none
@@ -108,13 +108,13 @@ let update msg model =
         loadContent model fetchUrl ContentLoaded LoadError
     | ContentLoaded result ->
         match result with
-        | Result.Ok eventContent ->
+        | Ok eventContent ->
             let elapsed = getRunningTime model
             { model with 
                 SearchStatus = Idle <| sprintf "Last search: %d ms" (int elapsed.TotalMilliseconds)
                 Content = extractContent eventContent
              }, Cmd.none
-        | Result.Error error ->
+        | Error error ->
             { model with SearchStatus = Idle error }, Cmd.none
     | LoadError exn -> 
         { model with SearchStatus = Idle <| getErrorMessage exn }, Cmd.none

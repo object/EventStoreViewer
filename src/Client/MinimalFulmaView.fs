@@ -1,4 +1,4 @@
-module EventStoreViewer.FulmaInitView
+module EventStoreViewer.MinimalFulmaView
 
 open System
 open Fable.React
