@@ -2,7 +2,6 @@ module EventStoreViewer.UpdateUtils
 
 open System
 open Elmish
-open Fable.Core
 open Fetch.Types
 open Thoth.Json
 
@@ -107,10 +106,3 @@ let loadContent (model : Model) fetchUrl onCompleted onError =
     { model with 
         SearchStatus = SearchStatus.Running (statusMessage, DateTime.Now )
         Content = "" }, Cmd.OfPromise.either fetchContent () onCompleted onError
-
-let extractContent (serviceEvent : EventContent) =
-    let text = (string)serviceEvent.Content
-    if text.TrimStart().StartsWith "<?xml" then
-        text
-    else
-        JS.JSON.stringify serviceEvent.Content |> (fun x -> x.Trim('"'))

@@ -199,7 +199,7 @@ let showContent (model : Model) dispatch =
     Field.div [] [
       div [] 
         [ Content.content [Content.Modifiers modifiers ]
-        [p [] [ str model.Content ] ] ] 
+        [p [] [ str model.ContentAsString ] ] ] 
     ] 
   ]
 

@@ -1,6 +1,7 @@
 module EventStoreViewer.Model
 
 open System
+open Fable.Core
 
 type EventSource =
     | Omnibus
@@ -61,6 +62,12 @@ type EventContent =
         Content : obj
     }
 
+[<RequireQualifiedAccess>]
+type ContentType =
+    | None
+    | Json
+    | Xml
+
 type SearchResult = {
     SearchMode : SearchMode
     Collections : EventSource list
@@ -85,7 +92,20 @@ type Model = {
     SearchStatus : SearchStatus
     SearchResult : SearchResult option
     SelectedEventIndex : int option
-    Content : string }
+    Content : obj } with
+    member this.ContentType =
+        if isNull this.Content then
+            ContentType.None
+        else
+            let text = (string)this.Content
+            if text = "" then ContentType.None
+            else if text.TrimStart().StartsWith "<?xml" then ContentType.Xml
+            else ContentType.Json
+    member this.ContentAsString =
+        match this.ContentType with
+        | ContentType.None -> ""
+        | ContentType.Json -> JS.JSON.stringify this.Content |> (fun x -> x.Trim('"'))
+        | ContentType.Xml -> (string)this.Content
 
 module Model =
     let private isValidTime s =

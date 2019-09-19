@@ -206,7 +206,7 @@ let showContent (model : Model) dispatch =
     Field.div [] [
       div [Style [WordWrap "break-word"; CSSProp.OverflowY "auto"; CSSProp.Height "96vh"]] 
         [ Content.content [Content.Modifiers modifiers ]
-        [p [] [ str model.Content ] ] ] 
+        [p [] [ str model.ContentAsString ] ] ] 
     ] 
   ]
 

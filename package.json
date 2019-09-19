@@ -11,6 +11,8 @@
   "dependencies": {
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
+    "react-json-view": "^1.19.1",
+    "react-xml-viewer": "^1.0.3",
     "remotedev": "^0.2.7"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-module EventStoreViewer.HtmlView
+module EventStoreViewer.HtmlViewWithComponents
 
 open System
 open Fable.React
@@ -7,6 +7,20 @@ open Fable.React.Props
 open Model
 open Messages
 open ViewUtils
+
+let inline prettifyJson json : ReactElement =
+  ofImport "default" "react-json-view"
+    {|
+      src = json
+      enableClipboard = false
+      displayObjectSize = false
+      displayDataTypes = false
+    |}
+    []
+
+let inline prettifyXml xml : ReactElement =
+  ofImport "default" "react-xml-viewer"
+    {| xml = xml |} []
 
 let showButton name disabled msg dispatch =
   button [
@@ -143,9 +157,13 @@ let showResults (model : Model) dispatch =
   ]
 
 let showContent (model : Model) _dispatch =
+  let content = 
+    match model.ContentType with
+    | ContentType.None -> str ""
+    | ContentType.Json -> prettifyJson model.Content
+    | ContentType.Xml -> prettifyXml model.ContentAsString
   div []
-    [ p [] [ str model.ContentAsString ] 
-  ]
+    [ content ] 
 
 let view model dispatch =
   div [] [

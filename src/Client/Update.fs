@@ -112,7 +112,7 @@ let update msg model =
             let elapsed = getRunningTime model
             { model with 
                 SearchStatus = Idle <| sprintf "Last search: %d ms" (int elapsed.TotalMilliseconds)
-                Content = extractContent eventContent
+                Content = eventContent.Content
              }, Cmd.none
         | Error error ->
             { model with SearchStatus = Idle error }, Cmd.none
