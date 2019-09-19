@@ -1,11 +1,27 @@
 module EventStoreViewer.ViewUtils
 
 open System
+open Fable.React
 
 open Model
 
 let [<Literal>] DateFormatString = "yyyy-MM-dd"
 let [<Literal>] TimeFormatString = "HH:mm:ss"
+
+let inline prettifyJson json : ReactElement =
+  ofImport "default" "react-json-view"
+    {|
+      src = json
+      name = false
+      enableClipboard = false
+      displayObjectSize = false
+      displayDataTypes = false
+    |}
+    []
+
+let inline prettifyXml xml : ReactElement =
+  ofImport "default" "react-xml-viewer"
+    {| xml = xml |} []
 
 type EventRow = 
     { 

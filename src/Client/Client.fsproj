@@ -12,6 +12,7 @@
     <Compile Include="HtmlViewWithComponents.fs" />
     <Compile Include="MinimalFulmaView.fs" />
     <Compile Include="FulmaView.fs" />
+    <Compile Include="FulmaViewWithComponents.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

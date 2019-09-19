@@ -8,20 +8,6 @@ open Model
 open Messages
 open ViewUtils
 
-let inline prettifyJson json : ReactElement =
-  ofImport "default" "react-json-view"
-    {|
-      src = json
-      enableClipboard = false
-      displayObjectSize = false
-      displayDataTypes = false
-    |}
-    []
-
-let inline prettifyXml xml : ReactElement =
-  ofImport "default" "react-xml-viewer"
-    {| xml = xml |} []
-
 let showButton name disabled msg dispatch =
   button [
     Disabled disabled
