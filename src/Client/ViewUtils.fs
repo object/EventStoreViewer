@@ -68,6 +68,10 @@ let createResultRow (result : SearchResult) (event : ServiceEvent) (model : Mode
             sprintf "%s (%s)" programId (carrierId.Substring(commonSubstring.Length))
         | _ -> programId
     | None, None, _ -> "EMPTY"
+  let eventId = 
+    match Guid.TryParse eventId with
+    | true, _ -> eventId.Substring(0,8) + "..."
+    | _ -> eventId
   let description = 
     match event.Description with 
     | Some text -> text

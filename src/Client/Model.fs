@@ -99,7 +99,7 @@ type Model = {
         else
             let text = (string)this.Content
             if text = "" then ContentType.None
-            else if text.TrimStart().StartsWith "<?xml" then ContentType.Xml
+            else if text.TrimStart().StartsWith "<" then ContentType.Xml
             else ContentType.Json
     member this.ContentAsString =
         match this.ContentType with
